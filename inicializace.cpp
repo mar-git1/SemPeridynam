@@ -1,1 +1,3 @@
 bagr
+pomoc
+aaa
