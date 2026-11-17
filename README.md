@@ -88,4 +88,6 @@ Do složky `paraview/` v pracovním adresáři se ukládají soubory `frame_XXXX
 
 V ParaView otevři sérii `frame_*.vtk`, stiskni **Apply**, zvol zobrazení **Points** a obarvení podle `damage` nebo `velocity`. Průběh zobrazíš tlačítkem **Play**; export neobsahuje metadata fyzikálního času.
 
+## Poznámky
+
 README.md bylo vytvořeno s pomocí AI
