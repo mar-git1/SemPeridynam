@@ -87,3 +87,5 @@ Do složky `paraview/` v pracovním adresáři se ukládají soubory `frame_XXXX
 Číslo v názvu snímku je index cyklu, nikoli fyzikální čas. Export probíhá po provedení kroku: `frame_000000.vtk` odpovídá času `dt`. Počáteční stav ani poslední krok se neukládají samostatně. Při opakovaném spuštění se shodné názvy přepíší; starší snímky s jinými názvy ve složce zůstanou.
 
 V ParaView otevři sérii `frame_*.vtk`, stiskni **Apply**, zvol zobrazení **Points** a obarvení podle `damage` nebo `velocity`. Průběh zobrazíš tlačítkem **Play**; export neobsahuje metadata fyzikálního času.
+
+README.md bylo vytvořeno s pomocí AI
