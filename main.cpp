@@ -5,6 +5,7 @@
 #include "solver.hpp"
 #include "solver.cpp"
 #include "io.hpp"
+#include "io.cpp"
 
 //hlavni fce
     //nastaveni hodnot materialovych param - E, rho atd.
@@ -31,7 +32,7 @@ int main()
 
     Grid boardMap;
 
-    //====================NASTAVUJEME===============================
+    //====================NASTAVUJEME=====================================
     // velikost desky [m]
     double tloustka = 1e-3;  // tloušťka
     double Lx = 100e-3; 
@@ -47,20 +48,20 @@ int main()
     double dl = 1e-3; // vzdálenost mezi body sítě (m)
 
     // konfigurace parametru simulace
-    int total_steps = 5000;
+    int total_steps = 50000;
     //pocet exportovanych kroku
     int num_steps = 100;
     int output_frequency = total_steps / num_steps;
-    double dt = 1e-5;
+    double dt = 1e-7;
 
-    //==============================================================
+    //=====================================================================
     // není potřeba nastavit
     double delta = 3 * dl;
 
     int Nx = Lx / dl; // interval bodů - máme x = 0 až x = 100 pro jeden řádek (počet sloupců bodů je Nx + 1) - nutné převést na int
     int Ny = Ly / dl; // interval bodů
 
-    double Sx = Lx/2; //střed díry
+    double Sx = Lx/2; //střed díry - prozatím uprostřed
     double Sy = Ly/2; 
 
     MatParams parameters;
@@ -71,25 +72,43 @@ int main()
     parameters.delta = delta;
     parameters.tloustka = tloustka;
 
+    boardMap.Nx = Nx;
+    boardMap.Ny = Ny;
+    boardMap.dl = dl;
+
     parameters.vypocet_zavislych_param();
 
-    // vysíťování obdelníku - síťuji po řádcích 
+    // vysíťování desky - síťuji po řádcích 
     // síťuji i hraniční body - mají menší objem přiřazený k materiálovému bodu - proto obsahují if - pokud jsou přesně na kraji, tak mají poloviční objem, v rohu mají čtvrtinový objem
     board.boardMeshing(tloustka, Sx, Sy, R, dl, Nx, Ny);
 
     // sestavení mapy pro hledání sousedů
-    boardMap.build_map(board, dl, Nx, Ny);
+    boardMap.build_map(board);
   
     // hledání a sestavení sousedů
-    boardMap.build_neighbors(board, parameters, dl, Nx, Ny);
+    boardMap.build_neighbors(board, parameters);
  
+    // zadání OP - 5 sloupců vlevo se nebude hýbat, 5 sloupců vpravo má předepsané posunutí
+    boardMap.set_fixed_boundary_type (board, 0, 4, 0, Ny);
+    boardMap.set_fixed_displacement(board, dt, total_steps, 10e-3, 0, Nx - 4, Nx, 0, Ny);
+
     //Hlavni loop simulace - volani solveru
         //for cyklus pres vsechny steps
+            for (int i = 0; i < total_steps; i++) {
             //volame solver
+            Solver::time_step_verlet(board, parameters, dt);
             // if step % output_frequency == 0
-                //generovani nazvu frame_xxxxxx.vtk
-                //volani io - write_vtk
-                //oznameni do konzole o exportu
+                if (i % output_frequency == 0) {
+                    //generovani nazvu frame_xxxxxx.vtk
+                    std::string step_str = std::to_string(i);
+                    std::string padded_step = std::string(6 - std::min(size_t(6), step_str.length()), '0') + step_str;
+                    std::string filename = "frame_" + padded_step + ".vtk";
+                    //volani io - write_vtk
+                    write_vtk_file(filename, board);
+                    //oznameni do konzole o exportu
+                    std::cout << "Exported snapshot at step " << i << " -> paraview/" << filename << "\n";
+                }
+            }
         //konec cyklu
 
     //kontrola Nx, Ny a dalších šikovných veličin
@@ -105,7 +124,8 @@ int main()
     std::cout << "Nx = " << Nx << ' ' << "Ny = " << Ny << std::endl;
 
     // využití mapovací funkce - složitost O(n)
-    boardMap.visualization(Nx, Ny);
+    boardMap.visualization();
 
+    std::cout << "Simulation finished successfully! :D\n";
     return 0;
 }
